@@ -347,7 +347,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 				lround(drawingColour[1] * 255),
 				lround(drawingColour[2] * 255),
 				lround(drawingColour[3] * 255)
-			), 3.f);
+			), currentThickness);
 			}
 			else {
 				ImGui::GetBackgroundDrawList()->AddLine(lineStart, mouse_pos, IM_COL32(
@@ -355,7 +355,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					lround(drawingColour[1] * 255),
 					lround(drawingColour[2] * 255),
 					lround(drawingColour[3] * 255)
-				), 3.f);
+				), currentThickness);
 			}
 		}
 
