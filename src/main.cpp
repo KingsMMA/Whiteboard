@@ -376,12 +376,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 				};
 
 			ImGui::SeparatorText("Presets");
-			if (ImGui::Button("Default")) preset(make_pair(vector<float>{1.f, 0.f, 0.f, 1.f}, 5.f ));
+			if (ImGui::Button("Default") || ImGui::IsKeyPressed(ImGuiKey_Keypad0)) preset(make_pair(vector<float>{1.f, 0.f, 0.f, 1.f}, 5.f ));
 			ImGui::SameLine();
-			if (ImGui::Button("Thick Purple")) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 1.f}, 10.f));;
-			if (ImGui::Button("Yellow Highlighter")) preset(make_pair(vector<float>{1.f, 1.f, 0.f, 0.3137254902f}, 20.f));;
+			if (ImGui::Button("Thick Purple") || ImGui::IsKeyPressed(ImGuiKey_Keypad1)) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 1.f}, 10.f));;
+			if (ImGui::Button("Yellow Highlighter") || ImGui::IsKeyPressed(ImGuiKey_Keypad2)) preset(make_pair(vector<float>{1.f, 1.f, 0.f, 0.3137254902f}, 20.f));;
 			ImGui::SameLine();
-			if (ImGui::Button("Pink Highlighter")) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 0.3137254902f}, 20.f));;
+			if (ImGui::Button("Pink Highlighter") || ImGui::IsKeyPressed(ImGuiKey_Keypad3)) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 0.3137254902f}, 20.f));;
 
 			ImGui::End();
 		}
