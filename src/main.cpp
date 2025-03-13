@@ -150,6 +150,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 				running = false;
 			}
 		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) running = false;
+
 		if (!running) break;
 
 		// Frame
@@ -158,7 +161,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		ImGui::NewFrame();
 
 		// Rendering
-		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
+		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
 
 		// Finish Frame
 		ImGui::Render();
