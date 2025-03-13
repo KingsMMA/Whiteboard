@@ -148,6 +148,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	// Vars
 	bool running = true;
 
+	// Menu Vars
+	bool menuOpen = false;
+	bool menuActive = true;
+	float drawingColour[4] = { 1.f, 0.f, 0.f, 1.f };
+
+	// Drawing Vars
 	int placeInHistory = 0;
 	vector<ImVector<ImVec2>> history;
 	ImVector<ImVec2> drawn;
@@ -170,6 +176,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		}
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) running = false;
+		if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt)) menuOpen = !menuOpen;
 
 		if (!running) break;
 
@@ -246,16 +253,34 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			ImVec2 point1 = drawn[i - 1];
 			ImVec2 point2 = drawn[i];
 			if (point1.x == -1 || point2.x == -1) continue;
-			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, IM_COL32(255, 0, 0, 255), 3.f);
+			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, IM_COL32(
+				lround(drawingColour[0] * 255),
+				lround(drawingColour[1] * 255),
+				lround(drawingColour[2] * 255),
+				lround(drawingColour[3] * 255)
+			), 3.f);
 		}
 
 		if (drawingStraightLine) {
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
-				ImGui::GetBackgroundDrawList()->AddLine(lineStart, snap(lineStart, mouse_pos), IM_COL32(255, 0, 0, 255), 3.f);
+				ImGui::GetBackgroundDrawList()->AddLine(lineStart, snap(lineStart, mouse_pos), IM_COL32(
+				lround(drawingColour[0] * 255),
+				lround(drawingColour[1] * 255),
+				lround(drawingColour[2] * 255),
+				lround(drawingColour[3] * 255)
+			), 3.f);
 			}
 			else {
 				ImGui::GetBackgroundDrawList()->AddLine(lineStart, mouse_pos, IM_COL32(255, 0, 0, 255), 3.f);
 			}
+		}
+
+		if (menuOpen) {
+			ImGui::Begin("Settings", &menuActive);
+
+			ImGui::ColorEdit4("Drawing Colour", drawingColour);
+
+			ImGui::End();
 		}
 
 		// Finish Frame
