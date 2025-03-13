@@ -151,6 +151,23 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			}
 		}
 		if (!running) break;
+
+		// Frame
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+		// Rendering
+
+		// Finish Frame
+		ImGui::Render();
+		constexpr float colour[4]{ 0.f, 0.f, 0.f, 0.f };
+		device_context->OMSetRenderTargets(1U, &render_target_view, nullptr);
+		device_context->ClearRenderTargetView(render_target_view, colour);
+
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		swap_chain->Present(1U, 0U);  // Vsync
 	}
 
 	// Close the program, cleanup
