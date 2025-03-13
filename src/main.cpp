@@ -218,7 +218,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		// Rendering
 		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, backgroundOpacity));  // Background
 
-		if (!ranges::equal(drawingColour, lastDrawingColour) && !drawn.empty() && !(drawn.back().x == -1 && drawn.back().y == -1)) {
+		if (!ranges::equal(drawingColour, lastDrawingColour)) {
 			colours[drawn.Size] = IM_COL32(
 				lround(drawingColour[0] * 255),
 				lround(drawingColour[1] * 255),
@@ -227,18 +227,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			);
 			drawn.push_back({ -1, -1 });
 			copy(drawingColour, drawingColour + 4, lastDrawingColour);
-
-			placeInHistory++;
-			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 		}
 
-		if (drawingThickness != lastDrawingThickness && !drawn.empty() && !(drawn.back().x == -1 && drawn.back().y == -1)) {
+		if (drawingThickness != lastDrawingThickness) {
 			thicknesses[drawn.Size] = drawingThickness;
 			drawn.push_back({ -1, -1 });
 			lastDrawingThickness = drawingThickness;
-
-			placeInHistory++;
-			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 		}
 
 		ImGui::GetBackgroundDrawList()->AddText({ 10, 10 }, ImColor(1.f, 1.f, 1.f, 1.f), std::to_string(history.size()).c_str());
