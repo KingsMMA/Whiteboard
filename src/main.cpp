@@ -9,6 +9,7 @@
 #include "snapping.h"
 #include <vector>
 #include <map>
+#include <string>
 #include <algorithm>
 #include <iterator>
 
@@ -32,6 +33,20 @@ LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM w_param, LPA
 
 	return DefWindowProc(window, message, w_param, l_param);
 }
+
+class MemoryState {
+public:
+	ImVector<ImVec2> drawn;
+	map<int, ImU32> colours{};
+	float drawingColour[4];
+	float lastDrawingColour[4];
+
+	MemoryState(const ImVector<ImVec2>& drawn, const std::map<int, ImU32>& colours, const float drawingColour[4], const float lastDrawingColour[4])
+		: drawn(drawn), colours(colours) {
+		std::copy(drawingColour, drawingColour + 4, this->drawingColour);
+		std::copy(lastDrawingColour, lastDrawingColour + 4, this->lastDrawingColour);
+	}
+};
 
 /**
 * @parameter instance This window's instance
@@ -163,10 +178,10 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 	// Drawing Vars
 	int placeInHistory = 0;
-	vector<ImVector<ImVec2>> history;
+	vector<MemoryState> history;
 	ImVector<ImVec2> drawn;
 	map<int, ImU32> colours {};
-	history.push_back(drawn);
+	history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
 	bool drawingLine = false;
 	bool undoPrevFrame = false;
 	bool redoNextFrame = false;
@@ -197,7 +212,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		// Rendering
 		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, backgroundOpacity));  // Background
 
-		if (!ranges::equal(drawingColour, lastDrawingColour)) {
+		if (!ranges::equal(drawingColour, lastDrawingColour) && !drawn.empty() && !(drawn.back().x == -1 && drawn.back().y == -1)) {
 			colours[drawn.Size] = IM_COL32(
 				lround(drawingColour[0] * 255),
 				lround(drawingColour[1] * 255),
@@ -206,7 +221,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			);
 			drawn.push_back({ -1, -1 });
 			copy(drawingColour, drawingColour + 4, lastDrawingColour);
+
+			placeInHistory++;
+			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
 		}
+
+		ImGui::GetBackgroundDrawList()->AddText({ 10, 10 }, ImColor(1.f, 1.f, 1.f, 1.f), std::to_string(history.size()).c_str());
 
 		ImVec2 mouse_pos = io.MousePos;
 		if (!io.WantCaptureMouse) {
@@ -231,19 +251,27 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					history.erase(history.begin() + placeInHistory + 1, history.end());
 				}
 				placeInHistory++;
-				history.push_back(drawn);
+				history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
 			}
 			else {
 				if (io.MouseClicked[4] && !redoNextFrame && !drawingStraightLine) {
 					if (placeInHistory < history.size() - 1) placeInHistory++;
-					drawn = history[placeInHistory];
+					MemoryState unloading = history[placeInHistory];
+					drawn = unloading.drawn;
+					colours = unloading.colours;
+					std::memcpy(drawingColour, unloading.drawingColour, sizeof(drawingColour));
+					std::memcpy(lastDrawingColour, unloading.lastDrawingColour, sizeof(lastDrawingColour));
 				}
 				else if (redoNextFrame) {
 					redoNextFrame = false;
 				}
 				else if (io.MouseClicked[3] && !undoPrevFrame && !drawingStraightLine) {
 					if (placeInHistory >= 1) placeInHistory--;
-					drawn = history[placeInHistory];
+					MemoryState unloading = history[placeInHistory];
+					drawn = unloading.drawn;
+					colours = unloading.colours;
+					std::memcpy(drawingColour, unloading.drawingColour, sizeof(drawingColour));
+					std::memcpy(lastDrawingColour, unloading.lastDrawingColour, sizeof(lastDrawingColour));
 				}
 				else if (undoPrevFrame) {
 					undoPrevFrame = false;
@@ -270,7 +298,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 						history.erase(history.begin() + placeInHistory + 1, history.end());
 					}
 					placeInHistory++;
-					history.push_back(drawn);
+					history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
 				}
 			}
 		}
@@ -334,9 +362,14 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 	// Close the program, cleanup
 	// https://stackoverflow.com/a/10465032/12964643
+	for (MemoryState memState : history) {
+		memState.drawn.clear();
+		memState.drawn.shrink(0);
+		memState.colours.clear();
+	}
 	history.clear();
 	history.shrink_to_fit();
-	vector<ImVector<ImVec2>>().swap(history);
+	vector<MemoryState>().swap(history);
 
 	drawn.clear();
 	drawn.shrink(0);
