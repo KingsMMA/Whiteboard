@@ -140,6 +140,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
+	ImGui::GetStyle().ScaleAllSizes(3.f);
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(device, device_context);
