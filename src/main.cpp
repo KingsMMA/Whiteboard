@@ -45,7 +45,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 	// Use the window class to create a window
 	const HWND window = CreateWindowExW(
-		WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED,
+		WS_EX_TOPMOST | WS_EX_TRANSPARENT,
 		wc.lpszClassName,
 		L"Whiteboard",
 		WS_POPUP,
@@ -158,6 +158,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		ImGui::NewFrame();
 
 		// Rendering
+		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
 
 		// Finish Frame
 		ImGui::Render();
