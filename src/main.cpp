@@ -192,63 +192,65 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, backgroundOpacity));  // Background
 
 		ImVec2 mouse_pos = io.MousePos;
-		if (io.MouseDown[0] && !drawingStraightLine) {
-			drawingLine = true;
+		if (!io.WantCaptureMouse) {
+			if (io.MouseDown[0] && !drawingStraightLine) {
+				drawingLine = true;
 
-			bool inList = false;
-			for (ImVec2 point : drawn) {
-				if (point.x == mouse_pos.x && point.y == mouse_pos.y) {
-					inList = true;
-					break;
+				bool inList = false;
+				for (ImVec2 point : drawn) {
+					if (point.x == mouse_pos.x && point.y == mouse_pos.y) {
+						inList = true;
+						break;
+					}
 				}
+				if (!inList) drawn.push_back(mouse_pos);
 			}
-			if (!inList) drawn.push_back(mouse_pos);
-		}
-		else if (drawingLine) {
-			drawingLine = false;
-			drawn.push_back({ -1, -1 });
-			if (placeInHistory != history.size() - 1) {
-				history.erase(history.begin() + placeInHistory + 1, history.end());
-			}
-			placeInHistory++;
-			history.push_back(drawn);
-		}
-		else {
-			if (io.MouseClicked[4] && !redoNextFrame && !drawingStraightLine) {
-				if (placeInHistory < history.size() - 1) placeInHistory++;
-				drawn = history[placeInHistory];
-			}
-			else if (redoNextFrame) {
-				redoNextFrame = false;
-			}
-			else if (io.MouseClicked[3] && !undoPrevFrame && !drawingStraightLine) {
-				if (placeInHistory >= 1) placeInHistory--;
-				drawn = history[placeInHistory];
-			}
-			else if (undoPrevFrame) {
-				undoPrevFrame = false;
-			}
-			else if (io.MouseDown[1]) {
-				if (!drawingStraightLine) {
-					drawingStraightLine = true;
-					lineStart = mouse_pos;
-				}
-			}
-			else if (drawingStraightLine) {
-				drawingStraightLine = false;
-				drawn.push_back(lineStart);
-				if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
-					drawn.push_back(snap(lineStart, mouse_pos));
-				}
-				else {
-					drawn.push_back(mouse_pos);
-				}
+			else if (drawingLine) {
+				drawingLine = false;
 				drawn.push_back({ -1, -1 });
 				if (placeInHistory != history.size() - 1) {
 					history.erase(history.begin() + placeInHistory + 1, history.end());
 				}
 				placeInHistory++;
 				history.push_back(drawn);
+			}
+			else {
+				if (io.MouseClicked[4] && !redoNextFrame && !drawingStraightLine) {
+					if (placeInHistory < history.size() - 1) placeInHistory++;
+					drawn = history[placeInHistory];
+				}
+				else if (redoNextFrame) {
+					redoNextFrame = false;
+				}
+				else if (io.MouseClicked[3] && !undoPrevFrame && !drawingStraightLine) {
+					if (placeInHistory >= 1) placeInHistory--;
+					drawn = history[placeInHistory];
+				}
+				else if (undoPrevFrame) {
+					undoPrevFrame = false;
+				}
+				else if (io.MouseDown[1]) {
+					if (!drawingStraightLine) {
+						drawingStraightLine = true;
+						lineStart = mouse_pos;
+					}
+				}
+				else if (drawingStraightLine) {
+					drawingStraightLine = false;
+					drawn.push_back(lineStart);
+					if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+						drawn.push_back(snap(lineStart, mouse_pos));
+					}
+					else {
+						drawn.push_back(mouse_pos);
+					}
+					drawn.push_back({ -1, -1 });
+					if (placeInHistory != history.size() - 1) {
+						history.erase(history.begin() + placeInHistory + 1, history.end());
+					}
+					placeInHistory++;
+					history.push_back(drawn);
+				}
 			}
 		}
 
