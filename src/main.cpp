@@ -6,6 +6,11 @@
 #include <imgui/imgui_impl_dx11.h>
 #include <imgui/imgui_impl_win32.h>
 
+#include "snapping.h"
+#include <vector>
+
+using namespace std;
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 /**
@@ -138,8 +143,21 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(device, device_context);
+	ImGuiIO& io = ImGui::GetIO();
 
+	// Vars
 	bool running = true;
+
+	int placeInHistory = 0;
+	vector<ImVector<ImVec2>> history;
+	ImVector<ImVec2> drawn;
+	history.push_back(drawn);
+	bool drawingLine = false;
+	bool undoPrevFrame = false;
+	bool redoNextFrame = false;
+	bool drawingStraightLine = false;
+	ImVec2 lineStart;
+
 	while (running) {
 		MSG msg;
 		while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
@@ -161,7 +179,84 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		ImGui::NewFrame();
 
 		// Rendering
-		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
+		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
+
+		ImVec2 mouse_pos = io.MousePos;
+		if (io.MouseDown[0] && !drawingStraightLine) {
+			drawingLine = true;
+
+			bool inList = false;
+			for (ImVec2 point : drawn) {
+				if (point.x == mouse_pos.x && point.y == mouse_pos.y) {
+					inList = true;
+					break;
+				}
+			}
+			if (!inList) drawn.push_back(mouse_pos);
+		}
+		else if (drawingLine) {
+			drawingLine = false;
+			drawn.push_back({ -1, -1 });
+			if (placeInHistory != history.size() - 1) {
+				history.erase(history.begin() + placeInHistory + 1, history.end());
+			}
+			placeInHistory++;
+			history.push_back(drawn);
+		}
+		else {
+			if (io.MouseClicked[4] && !redoNextFrame && !drawingStraightLine) {
+				if (placeInHistory < history.size() - 1) placeInHistory++;
+				drawn = history[placeInHistory];
+			}
+			else if (redoNextFrame) {
+				redoNextFrame = false;
+			}
+			else if (io.MouseClicked[3] && !undoPrevFrame && !drawingStraightLine) {
+				if (placeInHistory >= 1) placeInHistory--;
+				drawn = history[placeInHistory];
+			}
+			else if (undoPrevFrame) {
+				undoPrevFrame = false;
+			}
+			else if (io.MouseDown[1]) {
+				if (!drawingStraightLine) {
+					drawingStraightLine = true;
+					lineStart = mouse_pos;
+				}
+			}
+			else if (drawingStraightLine) {
+				drawingStraightLine = false;
+				drawn.push_back(lineStart);
+				if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+					drawn.push_back(snap(lineStart, mouse_pos));
+				}
+				else {
+					drawn.push_back(mouse_pos);
+				}
+				drawn.push_back({ -1, -1 });
+				if (placeInHistory != history.size() - 1) {
+					history.erase(history.begin() + placeInHistory + 1, history.end());
+				}
+				placeInHistory++;
+				history.push_back(drawn);
+			}
+		}
+
+		for (int i = 1; i < drawn.Size; i++) {
+			ImVec2 point1 = drawn[i - 1];
+			ImVec2 point2 = drawn[i];
+			if (point1.x == -1 || point2.x == -1) continue;
+			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, IM_COL32(255, 0, 0, 255), 3.f);
+		}
+
+		if (drawingStraightLine) {
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+				ImGui::GetBackgroundDrawList()->AddLine(lineStart, snap(lineStart, mouse_pos), IM_COL32(255, 0, 0, 255), 3.f);
+			}
+			else {
+				ImGui::GetBackgroundDrawList()->AddLine(lineStart, mouse_pos, IM_COL32(255, 0, 0, 255), 3.f);
+			}
+		}
 
 		// Finish Frame
 		ImGui::Render();
@@ -175,6 +270,15 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	}
 
 	// Close the program, cleanup
+	// https://stackoverflow.com/a/10465032/12964643
+	history.clear();
+	history.shrink_to_fit();
+	vector<ImVector<ImVec2>>().swap(history);
+
+	drawn.clear();
+	drawn.shrink(0);
+
+	// Window cleanup
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 
