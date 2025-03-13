@@ -8,6 +8,9 @@
 
 #include "snapping.h"
 #include <vector>
+#include <map>
+#include <algorithm>
+#include <iterator>
 
 using namespace std;
 
@@ -155,11 +158,14 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	bool backgroundEnabled = false;
 	float backgroundOpacity = 0.4f;
 	float drawingColour[4] = { 1.f, 0.f, 0.f, 1.f };
+	float lastDrawingColour[4];
+	copy(drawingColour, drawingColour + 4, lastDrawingColour);
 
 	// Drawing Vars
 	int placeInHistory = 0;
 	vector<ImVector<ImVec2>> history;
 	ImVector<ImVec2> drawn;
+	map<int, ImU32> colours {};
 	history.push_back(drawn);
 	bool drawingLine = false;
 	bool undoPrevFrame = false;
@@ -191,6 +197,17 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		// Rendering
 		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, backgroundOpacity));  // Background
 
+		if (!ranges::equal(drawingColour, lastDrawingColour)) {
+			colours[drawn.Size] = IM_COL32(
+				lround(drawingColour[0] * 255),
+				lround(drawingColour[1] * 255),
+				lround(drawingColour[2] * 255),
+				lround(drawingColour[3] * 255)
+			);
+			drawn.push_back({ -1, -1 });
+			copy(drawingColour, drawingColour + 4, lastDrawingColour);
+		}
+
 		ImVec2 mouse_pos = io.MousePos;
 		if (!io.WantCaptureMouse) {
 			if (io.MouseDown[0] && !drawingStraightLine) {
@@ -207,7 +224,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			}
 			else if (drawingLine) {
 				drawingLine = false;
+
 				drawn.push_back({ -1, -1 });
+
 				if (placeInHistory != history.size() - 1) {
 					history.erase(history.begin() + placeInHistory + 1, history.end());
 				}
@@ -244,7 +263,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					else {
 						drawn.push_back(mouse_pos);
 					}
+
 					drawn.push_back({ -1, -1 });
+
 					if (placeInHistory != history.size() - 1) {
 						history.erase(history.begin() + placeInHistory + 1, history.end());
 					}
@@ -254,16 +275,16 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			}
 		}
 
+		ImU32 currentColour = IM_COL32(255, 0, 0, 255);
 		for (int i = 1; i < drawn.Size; i++) {
 			ImVec2 point1 = drawn[i - 1];
 			ImVec2 point2 = drawn[i];
-			if (point1.x == -1 || point2.x == -1) continue;
-			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, IM_COL32(
-				lround(drawingColour[0] * 255),
-				lround(drawingColour[1] * 255),
-				lround(drawingColour[2] * 255),
-				lround(drawingColour[3] * 255)
-			), 3.f);
+			if (point1.x == -1 || point2.x == -1) {
+				ImU32 newColour = colours[point2.x == -1 ? i : i - 1];
+				if (newColour) currentColour = newColour;
+				continue;
+			}
+			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, currentColour, 3.f);
 		}
 
 		if (drawingStraightLine) {
@@ -276,7 +297,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			), 3.f);
 			}
 			else {
-				ImGui::GetBackgroundDrawList()->AddLine(lineStart, mouse_pos, IM_COL32(255, 0, 0, 255), 3.f);
+				ImGui::GetBackgroundDrawList()->AddLine(lineStart, mouse_pos, IM_COL32(
+					lround(drawingColour[0] * 255),
+					lround(drawingColour[1] * 255),
+					lround(drawingColour[2] * 255),
+					lround(drawingColour[3] * 255)
+				), 3.f);
 			}
 		}
 
