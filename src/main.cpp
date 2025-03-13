@@ -174,6 +174,8 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	float backgroundOpacity = 0.4f;
 	float drawingColour[4] = { 1.f, 0.f, 0.f, 1.f };
 	float lastDrawingColour[4];
+	float drawingThickness = 3.f;
+	float lastDrawingThickness = 3.f;
 	copy(drawingColour, drawingColour + 4, lastDrawingColour);
 
 	// Drawing Vars
@@ -181,6 +183,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	vector<MemoryState> history;
 	ImVector<ImVec2> drawn;
 	map<int, ImU32> colours {};
+	map<int, float> thicknesses {};
 	history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
 	bool drawingLine = false;
 	bool undoPrevFrame = false;
@@ -221,6 +224,15 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			);
 			drawn.push_back({ -1, -1 });
 			copy(drawingColour, drawingColour + 4, lastDrawingColour);
+
+			placeInHistory++;
+			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+		}
+
+		if (drawingThickness != lastDrawingThickness && !drawn.empty() && !(drawn.back().x == -1 && drawn.back().y == -1)) {
+			thicknesses[drawn.Size] = drawingThickness;
+			drawn.push_back({ -1, -1 });
+			lastDrawingThickness = drawingThickness;
 
 			placeInHistory++;
 			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
@@ -304,15 +316,19 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		}
 
 		ImU32 currentColour = IM_COL32(255, 0, 0, 255);
+		float currentThickness = 3.f;
 		for (int i = 1; i < drawn.Size; i++) {
 			ImVec2 point1 = drawn[i - 1];
 			ImVec2 point2 = drawn[i];
 			if (point1.x == -1 || point2.x == -1) {
 				ImU32 newColour = colours[point2.x == -1 ? i : i - 1];
 				if (newColour) currentColour = newColour;
+
+				ImU32 newThickness = thicknesses[point2.x == -1 ? i : i - 1];
+				if (newThickness) currentThickness = newThickness;
 				continue;
 			}
-			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, currentColour, 3.f);
+			ImGui::GetBackgroundDrawList()->AddLine(point1, point2, currentColour, currentThickness);
 		}
 
 		if (drawingStraightLine) {
@@ -345,6 +361,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			ImGui::Separator();
 
 			ImGui::ColorEdit4("Drawing Colour", drawingColour);
+			ImGui::SliderFloat("Line Thickness", &drawingThickness, 1.0f, 10.0f);
 
 			ImGui::End();
 		}
