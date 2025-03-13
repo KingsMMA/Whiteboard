@@ -172,14 +172,14 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	bool running = true;
 
 	// Menu Vars
-	bool menuOpen = false;
+	bool menuOpen = true;
 	bool menuActive = true;
-	bool backgroundEnabled = false;
+	bool backgroundEnabled = true;
 	float backgroundOpacity = 0.4f;
 	float drawingColour[4] = { 1.f, 0.f, 0.f, 1.f };
 	float lastDrawingColour[4];
-	float drawingThickness = 3.f;
-	float lastDrawingThickness = 3.f;
+	float drawingThickness = 5.f;
+	float lastDrawingThickness = 5.f;
 	copy(drawingColour, drawingColour + 4, lastDrawingColour);
 
 	// Drawing Vars
@@ -321,7 +321,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		}
 
 		ImU32 currentColour = IM_COL32(255, 0, 0, 255);
-		float currentThickness = 3.f;
+		float currentThickness = 5.f;
 		for (int i = 1; i < drawn.Size; i++) {
 			ImVec2 point1 = drawn[i - 1];
 			ImVec2 point2 = drawn[i];
@@ -367,7 +367,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 			ImGui::SeparatorText("Drawing");
 			ImGui::ColorEdit4("Drawing Colour", drawingColour);
-			ImGui::SliderFloat("Line Thickness", &drawingThickness, 1.0f, 10.0f);
+			ImGui::SliderFloat("Line Thickness", &drawingThickness, 1.0f, 30.0f);
 
 			auto preset = [&](const pair<vector<float>, float>& preset) {
 				std::memcpy(drawingColour, ranges::take_view(preset.first, 4).data(), sizeof(preset.first));
@@ -375,7 +375,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 				};
 
 			ImGui::SeparatorText("Presets");
-			if (ImGui::Button("Default")) preset(make_pair(vector<float>{1.f, 0.f, 0.f, 1.f}, 3.f ));
+			if (ImGui::Button("Default")) preset(make_pair(vector<float>{1.f, 0.f, 0.f, 1.f}, 5.f ));
 			ImGui::SameLine();
 			if (ImGui::Button("Thick Purple")) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 1.f}, 10.f));;
 			if (ImGui::Button("Yellow Highlighter")) preset(make_pair(vector<float>{1.f, 1.f, 0.f, 0.3137254902f}, 20.f));;
