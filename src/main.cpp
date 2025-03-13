@@ -12,6 +12,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include <ranges>
 
 using namespace std;
 
@@ -194,6 +195,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	bool drawingStraightLine = false;
 	ImVec2 lineStart;
 
+	colours[0] = IM_COL32(255, 0, 0, 255);
+	drawn.push_back({ -1, -1 });
+
 	while (running) {
 		MSG msg;
 		while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
@@ -361,10 +365,22 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 				ImGui::SliderFloat("Background Opacity", &backgroundOpacity, 0.0f, 1.0f);
 			}
 
-			ImGui::Separator();
-
+			ImGui::SeparatorText("Drawing");
 			ImGui::ColorEdit4("Drawing Colour", drawingColour);
 			ImGui::SliderFloat("Line Thickness", &drawingThickness, 1.0f, 10.0f);
+
+			auto preset = [&](const pair<vector<float>, float>& preset) {
+				std::memcpy(drawingColour, ranges::take_view(preset.first, 4).data(), sizeof(preset.first));
+				drawingThickness = preset.second;
+				};
+
+			ImGui::SeparatorText("Presets");
+			if (ImGui::Button("Default")) preset(make_pair(vector<float>{1.f, 0.f, 0.f, 1.f}, 3.f ));
+			ImGui::SameLine();
+			if (ImGui::Button("Thick Purple")) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 1.f}, 10.f));;
+			if (ImGui::Button("Yellow Highlighter")) preset(make_pair(vector<float>{1.f, 1.f, 0.f, 0.3137254902f}, 20.f));;
+			ImGui::SameLine();
+			if (ImGui::Button("Pink Highlighter")) preset(make_pair(vector<float>{0.85f, 0.f, 1.f, 0.3137254902f}, 20.f));;
 
 			ImGui::End();
 		}
