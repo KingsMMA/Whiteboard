@@ -49,9 +49,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		wc.lpszClassName,
 		L"Whiteboard",
 		WS_POPUP,
+		-2560,
 		0,
-		0,
-		2560, // width - look into using GetSystemMetrics or smth
+		2560 * 2, // width - look into using GetSystemMetrics or smth
 		1440, // height
 		nullptr,
 		nullptr,
@@ -158,7 +158,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		ImGui::NewFrame();
 
 		// Rendering
-		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
+		ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
 
 		// Finish Frame
 		ImGui::Render();
