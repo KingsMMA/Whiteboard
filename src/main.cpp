@@ -235,8 +235,6 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			lastDrawingThickness = drawingThickness;
 		}
 
-		ImGui::GetBackgroundDrawList()->AddText({ 10, 10 }, ImColor(1.f, 1.f, 1.f, 1.f), std::to_string(history.size()).c_str());
-
 		ImVec2 mouse_pos = io.MousePos;
 		if (!io.WantCaptureMouse) {
 			if (io.MouseDown[0] && !drawingStraightLine) {
@@ -354,6 +352,8 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		}
 
 		if (menuOpen) {
+			ImGui::GetBackgroundDrawList()->AddText({ 10, 10 }, ImColor(1.f, 1.f, 1.f, 1.f), (std::to_string(placeInHistory + 1) + " / " + std::to_string(history.size())).c_str());
+
 			ImGui::Begin("Settings", &menuActive);
 
 			ImGui::Checkbox("Background", &backgroundEnabled);
