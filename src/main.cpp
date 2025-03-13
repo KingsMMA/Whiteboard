@@ -153,6 +153,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	bool menuOpen = false;
 	bool menuActive = true;
 	bool backgroundEnabled = false;
+	float backgroundOpacity = 0.4f;
 	float drawingColour[4] = { 1.f, 0.f, 0.f, 1.f };
 
 	// Drawing Vars
@@ -188,7 +189,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 		ImGui::NewFrame();
 
 		// Rendering
-		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, 0.4f));  // Background
+		if (backgroundEnabled) ImGui::GetBackgroundDrawList()->AddRectFilled({ 0, 0 }, { 2560 * 2, 1440 }, ImColor(0.f, 0.f, 0.f, backgroundOpacity));  // Background
 
 		ImVec2 mouse_pos = io.MousePos;
 		if (io.MouseDown[0] && !drawingStraightLine) {
@@ -281,6 +282,12 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			ImGui::Begin("Settings", &menuActive);
 
 			ImGui::Checkbox("Background", &backgroundEnabled);
+			if (backgroundEnabled) {
+				ImGui::SliderFloat("Background Opacity", &backgroundOpacity, 0.0f, 1.0f);
+			}
+
+			ImGui::Separator();
+
 			ImGui::ColorEdit4("Drawing Colour", drawingColour);
 
 			ImGui::End();
