@@ -40,9 +40,12 @@ public:
 	map<int, ImU32> colours{};
 	float drawingColour[4];
 	float lastDrawingColour[4];
+	map<int, float> thicknesses{};
+	float drawingThickness;
+	float lastDrawingThickness;
 
-	MemoryState(const ImVector<ImVec2>& drawn, const std::map<int, ImU32>& colours, const float drawingColour[4], const float lastDrawingColour[4])
-		: drawn(drawn), colours(colours) {
+	MemoryState(const ImVector<ImVec2>& drawn, const std::map<int, ImU32>& colours, const float drawingColour[4], const float lastDrawingColour[4], const map<int, float> thicknesses, const float drawingThickness, const float lastDrawingThickness)
+		: drawn(drawn), colours(colours), thicknesses(thicknesses), drawingThickness(drawingThickness), lastDrawingThickness(lastDrawingThickness) {
 		std::copy(drawingColour, drawingColour + 4, this->drawingColour);
 		std::copy(lastDrawingColour, lastDrawingColour + 4, this->lastDrawingColour);
 	}
@@ -184,7 +187,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 	ImVector<ImVec2> drawn;
 	map<int, ImU32> colours {};
 	map<int, float> thicknesses {};
-	history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+	history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 	bool drawingLine = false;
 	bool undoPrevFrame = false;
 	bool redoNextFrame = false;
@@ -226,7 +229,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			copy(drawingColour, drawingColour + 4, lastDrawingColour);
 
 			placeInHistory++;
-			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 		}
 
 		if (drawingThickness != lastDrawingThickness && !drawn.empty() && !(drawn.back().x == -1 && drawn.back().y == -1)) {
@@ -235,7 +238,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 			lastDrawingThickness = drawingThickness;
 
 			placeInHistory++;
-			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+			history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 		}
 
 		ImGui::GetBackgroundDrawList()->AddText({ 10, 10 }, ImColor(1.f, 1.f, 1.f, 1.f), std::to_string(history.size()).c_str());
@@ -263,7 +266,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					history.erase(history.begin() + placeInHistory + 1, history.end());
 				}
 				placeInHistory++;
-				history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+				history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 			}
 			else {
 				if (io.MouseClicked[4] && !redoNextFrame && !drawingStraightLine) {
@@ -273,6 +276,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					colours = unloading.colours;
 					std::memcpy(drawingColour, unloading.drawingColour, sizeof(drawingColour));
 					std::memcpy(lastDrawingColour, unloading.lastDrawingColour, sizeof(lastDrawingColour));
+					thicknesses = unloading.thicknesses;
+					drawingThickness = unloading.drawingThickness;
+					lastDrawingThickness = unloading.lastDrawingThickness;
 				}
 				else if (redoNextFrame) {
 					redoNextFrame = false;
@@ -284,6 +290,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 					colours = unloading.colours;
 					std::memcpy(drawingColour, unloading.drawingColour, sizeof(drawingColour));
 					std::memcpy(lastDrawingColour, unloading.lastDrawingColour, sizeof(lastDrawingColour));
+					thicknesses = unloading.thicknesses;
+					drawingThickness = unloading.drawingThickness;
+					lastDrawingThickness = unloading.lastDrawingThickness;
 				}
 				else if (undoPrevFrame) {
 					undoPrevFrame = false;
@@ -310,7 +319,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 						history.erase(history.begin() + placeInHistory + 1, history.end());
 					}
 					placeInHistory++;
-					history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour));
+					history.push_back(MemoryState(drawn, colours, drawingColour, lastDrawingColour, thicknesses, drawingThickness, lastDrawingThickness));
 				}
 			}
 		}
