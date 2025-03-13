@@ -211,6 +211,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show) {
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) running = false;
 		if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt)) menuOpen = !menuOpen;
+		if (ImGui::IsKeyPressed(ImGuiKey_Space) || ImGui::IsKeyPressed(ImGuiKey_B)) backgroundEnabled = !backgroundEnabled;
 
 		if (!running) break;
 
